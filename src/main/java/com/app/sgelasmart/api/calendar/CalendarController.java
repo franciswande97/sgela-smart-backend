@@ -2,7 +2,6 @@ package com.app.sgelasmart.api.calendar;
 
 import com.app.sgelasmart.api.calendar.dto.CalendarEventRequest;
 import com.app.sgelasmart.api.calendar.dto.CalendarEventResponse;
-import com.app.sgelasmart.api.calendar.dto.TimetableOcrRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -41,23 +40,23 @@ public class CalendarController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEvent);
     }
 
-    @PostMapping(value = "/users/{user_id}/timetable/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<List<CalendarEventResponse>> uploadTimetable(
+    @PostMapping(value = "/users/{user_id}/timetable/class/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<CalendarEventResponse>> uploadClassTimetable(
             @PathVariable("user_id") Long userId,
             @RequestParam("file") MultipartFile file,
             Authentication authentication
     ) {
-        List<CalendarEventResponse> events = calendarEventService.uploadAndParseTimetable(userId, file, authentication.getName());
+        List<CalendarEventResponse> events = calendarEventService.uploadAndParseClassTimetable(userId, file, authentication.getName());
         return ResponseEntity.ok(events);
     }
 
-    @PostMapping("/users/{user_id}/timetable/parse")
-    public ResponseEntity<List<CalendarEventResponse>> parseTimetableOcr(
+    @PostMapping(value = "/users/{user_id}/timetable/writing/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<CalendarEventResponse>> uploadWritingTimetable(
             @PathVariable("user_id") Long userId,
-            @Valid @RequestBody TimetableOcrRequest requestDto,
+            @RequestParam("file") MultipartFile file,
             Authentication authentication
     ) {
-        List<CalendarEventResponse> events = calendarEventService.parseTimetableOcr(userId, requestDto.getOcrRawText(), authentication.getName());
+        List<CalendarEventResponse> events = calendarEventService.uploadAndParseWritingTimetable(userId, file, authentication.getName());
         return ResponseEntity.ok(events);
     }
 }

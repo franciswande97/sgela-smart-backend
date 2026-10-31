@@ -6,6 +6,7 @@ import com.app.sgelasmart.api.calendar.dto.CalendarEventRequest;
 import com.app.sgelasmart.api.calendar.dto.CalendarEventResponse;
 import com.app.sgelasmart.api.goal.dto.TimetableSlotDto;
 import com.app.sgelasmart.common.EventSource;
+import com.app.sgelasmart.common.TimetableType;
 import com.app.sgelasmart.model.CalendarEvent;
 import com.app.sgelasmart.model.User;
 import org.springframework.security.access.AccessDeniedException;
@@ -15,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +49,9 @@ public class CalendarEventService {
     public CalendarEventResponse createEvent(Long userId, CalendarEventRequest request, String authenticatedEmail) {
         verifyUserAccess(userId, authenticatedEmail);
 
+        TimetableType type = request.getTimetableType() != null ? request.getTimetableType() : TimetableType.CLASS;
+        boolean recurring = request.getIsRecurring() != null ? request.getIsRecurring() : (type == TimetableType.CLASS);
+
         CalendarEvent event = new CalendarEvent(
                 userId,
                 request.getTitle(),
@@ -55,7 +60,8 @@ public class CalendarEventService {
                 request.getStartTime(),
                 request.getEndTime(),
                 request.getSource() != null ? request.getSource() : EventSource.MANUAL,
-                request.getIsRecurring() != null ? request.getIsRecurring() : true
+                type,
+                recurring
         );
 
         CalendarEvent saved = calendarEventRepository.save(event);
@@ -63,24 +69,15 @@ public class CalendarEventService {
     }
 
     @Transactional
-    public List<CalendarEventResponse> uploadAndParseTimetable(Long userId, MultipartFile file, String authenticatedEmail) {
+    public List<CalendarEventResponse> uploadAndParseClassTimetable(Long userId, MultipartFile file, String authenticatedEmail) {
         verifyUserAccess(userId, authenticatedEmail);
 
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("Timetable file cannot be empty");
-        }
-
+        byte[] bytes = extractFileBytes(file);
         String contentType = file.getContentType() != null ? file.getContentType() : "image/jpeg";
-        byte[] bytes;
-        try {
-            bytes = file.getBytes();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read timetable file", e);
-        }
 
         List<TimetableSlotDto> extractedSlots = intelligenceEngine.parseTimetable(bytes, contentType);
 
-        calendarEventRepository.deleteByUserIdAndSource(userId, EventSource.OCR);
+        calendarEventRepository.deleteByUserIdAndSourceAndTimetableType(userId, EventSource.OCR, TimetableType.CLASS);
 
         List<CalendarEvent> newEvents = new ArrayList<>();
         for (TimetableSlotDto slot : extractedSlots) {
@@ -96,6 +93,7 @@ public class CalendarEventService {
                     start,
                     end,
                     EventSource.OCR,
+                    TimetableType.CLASS,
                     true
             ));
         }
@@ -105,24 +103,48 @@ public class CalendarEventService {
     }
 
     @Transactional
-    public List<CalendarEventResponse> parseTimetableOcr(Long userId, String rawOcrText, String authenticatedEmail) {
+    public List<CalendarEventResponse> uploadAndParseWritingTimetable(Long userId, MultipartFile file, String authenticatedEmail) {
         verifyUserAccess(userId, authenticatedEmail);
 
-        calendarEventRepository.deleteByUserIdAndSource(userId, EventSource.OCR);
+        byte[] bytes = extractFileBytes(file);
+        String contentType = file.getContentType() != null ? file.getContentType() : "image/jpeg";
 
-        CalendarEvent fallbackEvent = new CalendarEvent(
-                userId,
-                "Sample Class from Timetable",
-                DayOfWeek.MONDAY,
-                null,
-                LocalTime.of(9, 0),
-                LocalTime.of(11, 0),
-                EventSource.OCR,
-                true
-        );
+        List<TimetableSlotDto> extractedSlots = intelligenceEngine.parseTimetable(bytes, contentType);
 
-        CalendarEvent saved = calendarEventRepository.save(fallbackEvent);
-        return List.of(mapToResponse(saved));
+        calendarEventRepository.deleteByUserIdAndSourceAndTimetableType(userId, EventSource.OCR, TimetableType.WRITING);
+
+        List<CalendarEvent> newEvents = new ArrayList<>();
+        for (TimetableSlotDto slot : extractedSlots) {
+            LocalDate examDate = parseLocalDate(slot.getDate(), LocalDate.now().plusDays(7));
+            LocalTime start = parseLocalTime(slot.getStartTime(), LocalTime.of(9, 0));
+            LocalTime end = parseLocalTime(slot.getEndTime(), start.plusHours(3));
+
+            newEvents.add(new CalendarEvent(
+                    userId,
+                    slot.getTitle(),
+                    examDate.getDayOfWeek(),
+                    examDate,
+                    start,
+                    end,
+                    EventSource.OCR,
+                    TimetableType.WRITING,
+                    false
+            ));
+        }
+
+        List<CalendarEvent> saved = calendarEventRepository.saveAll(newEvents);
+        return saved.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    private byte[] extractFileBytes(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Timetable file cannot be empty");
+        }
+        try {
+            return file.getBytes();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read timetable file", e);
+        }
     }
 
     private void verifyUserAccess(Long userId, String authenticatedEmail) {
@@ -139,6 +161,15 @@ public class CalendarEventService {
             return DayOfWeek.valueOf(dayStr.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
             return DayOfWeek.MONDAY;
+        }
+    }
+
+    private LocalDate parseLocalDate(String dateStr, LocalDate fallback) {
+        if (dateStr == null || dateStr.isBlank()) return fallback;
+        try {
+            return LocalDate.parse(dateStr.trim());
+        } catch (Exception e) {
+            return fallback;
         }
     }
 
@@ -165,6 +196,7 @@ public class CalendarEventService {
                 event.getStartTime(),
                 event.getEndTime(),
                 event.getSource(),
+                event.getTimetableType(),
                 event.getIsRecurring()
         );
     }

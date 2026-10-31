@@ -1,6 +1,7 @@
 package com.app.sgelasmart.model;
 
 import com.app.sgelasmart.common.EventSource;
+import com.app.sgelasmart.common.TimetableType;
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -37,13 +38,18 @@ public class CalendarEvent {
     @Column(nullable = false)
     private EventSource source;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "timetable_type")
+    private TimetableType timetableType;
+
     @Column(name = "is_recurring", nullable = false)
-    private Boolean isRecurring = true;
+    private Boolean isRecurring;
 
     public CalendarEvent() {}
 
     public CalendarEvent(Long userId, String title, DayOfWeek dayOfWeek, LocalDate eventDate,
-                         LocalTime startTime, LocalTime endTime, EventSource source, Boolean isRecurring) {
+                         LocalTime startTime, LocalTime endTime, EventSource source,
+                         TimetableType timetableType, Boolean isRecurring) {
         this.userId = userId;
         this.title = title;
         this.dayOfWeek = dayOfWeek;
@@ -51,78 +57,27 @@ public class CalendarEvent {
         this.startTime = startTime;
         this.endTime = endTime;
         this.source = source;
-        this.isRecurring = isRecurring != null ? isRecurring : true;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public DayOfWeek getDayOfWeek() {
-        return dayOfWeek;
-    }
-
-    public void setDayOfWeek(DayOfWeek dayOfWeek) {
-        this.dayOfWeek = dayOfWeek;
-    }
-
-    public LocalDate getEventDate() {
-        return eventDate;
-    }
-
-    public void setEventDate(LocalDate eventDate) {
-        this.eventDate = eventDate;
-    }
-
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public EventSource getSource() {
-        return source;
-    }
-
-    public void setSource(EventSource source) {
-        this.source = source;
-    }
-
-    public Boolean getIsRecurring() {
-        return isRecurring;
-    }
-
-    public void setIsRecurring(Boolean isRecurring) {
+        this.timetableType = timetableType;
         this.isRecurring = isRecurring;
     }
+
+    public Long getId() { return id; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public DayOfWeek getDayOfWeek() { return dayOfWeek; }
+    public void setDayOfWeek(DayOfWeek dayOfWeek) { this.dayOfWeek = dayOfWeek; }
+    public LocalDate getEventDate() { return eventDate; }
+    public void setEventDate(LocalDate eventDate) { this.eventDate = eventDate; }
+    public LocalTime getStartTime() { return startTime; }
+    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
+    public LocalTime getEndTime() { return endTime; }
+    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
+    public EventSource getSource() { return source; }
+    public void setSource(EventSource source) { this.source = source; }
+    public TimetableType getTimetableType() { return timetableType; }
+    public void setTimetableType(TimetableType timetableType) { this.timetableType = timetableType; }
+    public Boolean getIsRecurring() { return isRecurring; }
+    public void setIsRecurring(Boolean isRecurring) { this.isRecurring = isRecurring; }
 }

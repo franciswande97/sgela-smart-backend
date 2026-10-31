@@ -26,7 +26,7 @@ public class StudyIntelligenceEngine {
 
     private static final Logger log = LoggerFactory.getLogger(StudyIntelligenceEngine.class);
     private final RestClient restClient;
-    private static final String MODEL_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=";
+    private static final String MODEL_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=";
     private final ObjectMapper objectMapper;
 
     @Value("${gemini.api.key:}")
@@ -178,10 +178,13 @@ public class StudyIntelligenceEngine {
         String responseJson = restClient.post()
                 .uri(url)
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("x-goog-api-key", apiKey)
                 .body(requestBody)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, (req, resp) -> {
-                    throw new ResponseStatusException(HttpStatusCode.valueOf(503), "AI Intelligence Engine unavailable: " + resp.getStatusCode());
+                    String errBody = new String(resp.getBody().readAllBytes());
+                    log.error("Gemini API error ({}): {}", resp.getStatusCode(), errBody);
+                    throw new ResponseStatusException(HttpStatusCode.valueOf(503), "AI Intelligence Engine error: " + resp.getStatusCode() + " - " + errBody);
                 })
                 .body(String.class);
 
@@ -216,5 +219,62 @@ public class StudyIntelligenceEngine {
         );
 
         return new GeminiExamContentResponse(questions, prompt);
+    }
+
+    public ExternalPromptDto generatePracticalPrompt(String goalTitle, String corpus) {
+        if (apiKey == null || apiKey.isBlank()) {
+            return new ExternalPromptDto(
+                    "Claude 3.7 Sonnet",
+                    "Recommended for rigorous backend architecture, low-level concurrency, and clean test generation.",
+                    "Act as a Principal Software Engineer. Help me architect and build: " + goalTitle + " adhering strictly to the following specification: \n" + (corpus != null ? corpus : "")
+            );
+        }
+
+        String prompt = """
+                You are an expert AI technical evaluator and lead software architect.
+                Analyze the following project brief and study materials:
+                Title: %s
+                Corpus / Specification:
+                %s
+
+                Tasks:
+                1. Select the absolute best frontier AI assistant for solving this task:
+                   - "Claude 3.7 Sonnet" for complex algorithmic logic, code refactoring, system internals, concurrency, and deep backend implementations.
+                   - "GPT-4o" for high-level software architecture, REST/OpenAPI contracts, and general full-stack coordination.
+                   - "Gemini 2.5 Pro" for massive multi-document synthesis, exhaustive test coverage, and documentation generation.
+                2. Formulate a 1-sentence technical reason for this recommendation.
+                3. Construct a high-leverage, production-ready system prompt the student can paste into that AI tool to accelerate and guide their lab implementation without cheating.
+                """.formatted(goalTitle, corpus != null && !corpus.isBlank() ? corpus : "General Software Development");
+
+        Map<String, Object> externalPromptSchema = Map.of(
+                "type", "OBJECT",
+                "properties", Map.of(
+                        "recommended_engine", Map.of("type", "STRING"),
+                        "recommendation_reason", Map.of("type", "STRING"),
+                        "prompt_text", Map.of("type", "STRING")
+                ),
+                "required", List.of("recommended_engine", "recommendation_reason", "prompt_text")
+        );
+
+        Map<String, Object> requestBody = Map.of(
+                "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
+                "generationConfig", Map.of(
+                        "responseMimeType", "application/json",
+                        "responseSchema", externalPromptSchema
+                )
+        );
+
+        try {
+            log.info("Generating AI practical prompt and model recommendation for goal: {}", goalTitle);
+            String rawJsonText = executeGeminiCall(requestBody);
+            return objectMapper.readValue(rawJsonText, ExternalPromptDto.class);
+        } catch (Exception e) {
+            log.error("Failed to generate practical prompt via Gemini. Falling back to default. Error: {}", e.getMessage(), e);
+            return new ExternalPromptDto(
+                    "Claude 3.7 Sonnet",
+                    "Recommended for rigorous backend architecture, low-level concurrency, and clean test generation.",
+                    "Act as a Principal Software Engineer. Help me architect and build: " + goalTitle + " adhering strictly to the following specification: \n" + (corpus != null ? corpus : "")
+            );
+        }
     }
 }

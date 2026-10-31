@@ -4,6 +4,7 @@ public class TimetableSlotDto {
 
     private String title;
     private String dayOfWeek;
+    private String date;
     private String startTime;
     private String endTime;
 
@@ -12,6 +13,14 @@ public class TimetableSlotDto {
     public TimetableSlotDto(String title, String dayOfWeek, String startTime, String endTime) {
         this.title = title;
         this.dayOfWeek = dayOfWeek;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
+    public TimetableSlotDto(String title, String dayOfWeek, String date, String startTime, String endTime) {
+        this.title = title;
+        this.dayOfWeek = dayOfWeek;
+        this.date = date;
         this.startTime = startTime;
         this.endTime = endTime;
     }
@@ -30,6 +39,14 @@ public class TimetableSlotDto {
 
     public void setDayOfWeek(String dayOfWeek) {
         this.dayOfWeek = dayOfWeek;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 
     public String getStartTime() {

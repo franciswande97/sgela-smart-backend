@@ -23,20 +23,29 @@ public class TaskResponse {
     private LocalDate scheduledDate;
     private LocalTime startTime;
     private LocalTime endTime;
+    private LocalDateTime startedAt;
+    private LocalDateTime expiresAt;
 
-    // 11-arg constructor for existing callers (TaskService)
     public TaskResponse(Long id, Long goalId, Long userId, String title, String description,
                         TaskLifecycleState lifecycleState, TaskType taskType, String contentPayload,
                         LocalDate dueDate, Integer estimatedDurationMinutes, LocalDateTime createdAt) {
         this(id, goalId, userId, title, description, lifecycleState, taskType, contentPayload,
-             dueDate, estimatedDurationMinutes, createdAt, null, null, null);
+             dueDate, estimatedDurationMinutes, createdAt, null, null, null, null, null);
     }
 
-    // 14-arg constructor with scheduling fields
     public TaskResponse(Long id, Long goalId, Long userId, String title, String description,
                         TaskLifecycleState lifecycleState, TaskType taskType, String contentPayload,
                         LocalDate dueDate, Integer estimatedDurationMinutes, LocalDateTime createdAt,
                         LocalDate scheduledDate, LocalTime startTime, LocalTime endTime) {
+        this(id, goalId, userId, title, description, lifecycleState, taskType, contentPayload,
+             dueDate, estimatedDurationMinutes, createdAt, scheduledDate, startTime, endTime, null, null);
+    }
+
+    public TaskResponse(Long id, Long goalId, Long userId, String title, String description,
+                        TaskLifecycleState lifecycleState, TaskType taskType, String contentPayload,
+                        LocalDate dueDate, Integer estimatedDurationMinutes, LocalDateTime createdAt,
+                        LocalDate scheduledDate, LocalTime startTime, LocalTime endTime,
+                        LocalDateTime startedAt, LocalDateTime expiresAt) {
         this.id = id;
         this.goalId = goalId;
         this.userId = userId;
@@ -51,6 +60,8 @@ public class TaskResponse {
         this.scheduledDate = scheduledDate;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.startedAt = startedAt;
+        this.expiresAt = expiresAt;
     }
 
     public Long getId() { return id; }
@@ -67,4 +78,6 @@ public class TaskResponse {
     public LocalDate getScheduledDate() { return scheduledDate; }
     public LocalTime getStartTime() { return startTime; }
     public LocalTime getEndTime() { return endTime; }
+    public LocalDateTime getStartedAt() { return startedAt; }
+    public LocalDateTime getExpiresAt() { return expiresAt; }
 }

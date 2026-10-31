@@ -1,6 +1,7 @@
 package com.app.sgelasmart.api.goal;
 
 import com.app.sgelasmart.api.goal.dto.*;
+import com.app.sgelasmart.api.goal.SoftwarePracticalTemplateService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,13 +18,17 @@ public class GoalController {
     private final GoalService goalService;
     private final GoalMaterialService goalMaterialService;
     private final ExamPrepTemplateService examPrepTemplateService;
+    private final SoftwarePracticalTemplateService softwarePracticalTemplateService;
 
     public GoalController(GoalService goalService,
                           GoalMaterialService goalMaterialService,
-                          ExamPrepTemplateService examPrepTemplateService) {
+                          ExamPrepTemplateService examPrepTemplateService,
+                          SoftwarePracticalTemplateService softwarePracticalTemplateService
+                          ) {
         this.goalService = goalService;
         this.goalMaterialService = goalMaterialService;
         this.examPrepTemplateService = examPrepTemplateService;
+        this.softwarePracticalTemplateService = softwarePracticalTemplateService;
     }
 
     @GetMapping("/users/{user_id}/goals")
@@ -81,6 +86,18 @@ public class GoalController {
             Authentication authentication
     ) {
         GoalTemplateResponse response = examPrepTemplateService.applyExamPrepTemplate(goalId, requestDto, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/goals/{goal_id}/apply-software-practical-template")
+    public ResponseEntity<GoalTemplateResponse> applySoftwarePracticalTemplate(
+        @PathVariable("goal_id") Long goalId,
+        Authentication authentication) {
+        GoalTemplateResponse response =
+            softwarePracticalTemplateService
+                    .applySoftwarePracticalTemplate(
+                            goalId,
+                            authentication.getName());
         return ResponseEntity.ok(response);
     }
 }

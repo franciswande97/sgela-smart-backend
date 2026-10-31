@@ -1,4 +1,5 @@
 package com.app.sgelasmart.api.task;
+
 import com.app.sgelasmart.api.task.dto.QuizSubmissionRequest;
 import com.app.sgelasmart.api.task.dto.QuizSubmissionResponse;
 import com.app.sgelasmart.api.task.dto.SanitizedQuizQuestionResponse;
@@ -20,6 +21,53 @@ public class TaskController {
 
     public TaskController(TaskService taskService) {
         this.taskService = taskService;
+    }
+
+    @PostMapping("/tasks/{task_id}/start")
+    public ResponseEntity<TaskResponse> startTask(
+            @PathVariable("task_id") Long taskId,
+            Authentication authentication
+    ) {
+        TaskResponse response = taskService.startTask(taskId, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/tasks/{task_id}/complete")
+    public ResponseEntity<TaskResponse> completeTask(
+            @PathVariable("task_id") Long taskId,
+            Authentication authentication
+    ) {
+        TaskResponse response = taskService.completeTask(taskId, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/tasks/{task_id}/objectives/{objective_id}")
+    public ResponseEntity<TaskResponse> toggleObjective(
+            @PathVariable("task_id") Long taskId,
+            @PathVariable("objective_id") int objectiveId,
+            @RequestParam(name = "completed", defaultValue = "true") boolean completed,
+            Authentication authentication
+    ) {
+        TaskResponse response = taskService.toggleObjective(taskId, objectiveId, completed, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/tasks/{task_id}/reschedule-if-expired")
+    public ResponseEntity<TaskResponse> rescheduleIfExpired(
+            @PathVariable("task_id") Long taskId,
+            Authentication authentication
+    ) {
+        TaskResponse response = taskService.checkAndRescheduleIfExpired(taskId, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/tasks/{task_id}/regenerate-quiz")
+    public ResponseEntity<TaskResponse> regenerateQuiz(
+            @PathVariable("task_id") Long taskId,
+            Authentication authentication
+    ) {
+        TaskResponse response = taskService.regenerateQuizTask(taskId, authentication.getName());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/tasks/{task_id}/quiz")
@@ -80,7 +128,7 @@ public class TaskController {
     }
 
     @DeleteMapping("/tasks/{task_id}")
-    public ResponseEntity<Map<String, Object>> deleteTask(
+    public ResponseEntity<java.util.Map<String, Object>> deleteTask(
             @PathVariable("task_id") Long taskId,
             Authentication authentication
     ) {
