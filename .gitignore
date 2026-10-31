@@ -33,7 +33,7 @@ out/
 /dist/
 /nbdist/
 /.nb-gradle/
-
+.copilot/
 ### VS Code ###
 .vscode/
 
