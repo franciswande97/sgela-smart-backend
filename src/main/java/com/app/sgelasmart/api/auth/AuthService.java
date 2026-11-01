@@ -28,8 +28,11 @@ public class AuthService {
         if (userRepository.existsByEmail(request.email())) {
             throw new IllegalArgumentException("Email is already registered");
         }
+<<<<<<< HEAD
 
         Role assignedRole = (request.role() != null) ? request.role() : Role.ROLE_STUDENT;
+=======
+>>>>>>> 5ec6bd2 (WIP:working - feat(admin): add analytics dashboard API)
         String hashedPassword = passwordEncoder.encode(request.password());
         User user = new User(request.email(), hashedPassword, request.name(), assignedRole);
         User savedUser = userRepository.save(user);

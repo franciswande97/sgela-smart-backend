@@ -1,6 +1,15 @@
 package com.app.sgelasmart.model;
 
-import jakarta.persistence.*;
+import com.app.sgelasmart.common.UserRole;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "users")
@@ -20,8 +29,13 @@ public class User {
     private String name;
 
     @Enumerated(EnumType.STRING)
+<<<<<<< HEAD
     @Column(nullable = false)
     private Role role = Role.ROLE_STUDENT;
+=======
+    @Column
+    private UserRole role = UserRole.STUDENT;
+>>>>>>> 5ec6bd2 (WIP:working - feat(admin): add analytics dashboard API)
 
     public User() {
     }
@@ -65,6 +79,7 @@ public class User {
         this.name = name;
     }
 
+<<<<<<< HEAD
     public Role getRole() {
         return role;
     }
@@ -73,3 +88,8 @@ public class User {
         this.role = (role != null) ? role : Role.ROLE_STUDENT;
     }
 }
+=======
+    public UserRole getRole() { return role != null ? role : UserRole.STUDENT; }
+    public void setRole(UserRole role) { this.role = role; }
+}
+>>>>>>> 5ec6bd2 (WIP:working - feat(admin): add analytics dashboard API)

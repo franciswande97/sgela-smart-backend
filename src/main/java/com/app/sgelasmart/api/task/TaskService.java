@@ -8,6 +8,7 @@ import com.app.sgelasmart.api.goal.dto.GeminiExamContentResponse;
 import com.app.sgelasmart.api.goal.dto.QuizQuestionDto;
 import com.app.sgelasmart.api.schedule.TimetableVoidService;
 import com.app.sgelasmart.api.settings.UserSettingsRepository;
+import com.app.sgelasmart.api.analytics.QuizAttemptRepository;
 import com.app.sgelasmart.model.UserSettings;
 import com.app.sgelasmart.api.schedule.dto.TimeSlot;
 import com.app.sgelasmart.api.task.dto.*;
@@ -43,6 +44,7 @@ public class TaskService {
     private final TimetableVoidService timetableVoidService;
     private final UserSettingsRepository userSettingsRepository;
     private final ObjectMapper objectMapper;
+    private final QuizAttemptRepository quizAttemptRepository;
 
     public TaskService(TaskRepository taskRepository,
                        GoalRepository goalRepository,
@@ -51,7 +53,8 @@ public class TaskService {
                        StudyIntelligenceEngine intelligenceEngine,
                        TimetableVoidService timetableVoidService,
                        UserSettingsRepository userSettingsRepository,
-                       ObjectMapper objectMapper) {
+                       ObjectMapper objectMapper,
+                       QuizAttemptRepository quizAttemptRepository) {
         this.taskRepository = taskRepository;
         this.goalRepository = goalRepository;
         this.userRepository = userRepository;
@@ -60,6 +63,7 @@ public class TaskService {
         this.timetableVoidService = timetableVoidService;
         this.userSettingsRepository = userSettingsRepository;
         this.objectMapper = objectMapper;
+        this.quizAttemptRepository = quizAttemptRepository;
     }
 
     @Transactional
@@ -88,6 +92,7 @@ public class TaskService {
         Task task = getTaskAndVerifyOwnership(taskId, user.getId());
 
         task.setLifecycleState(TaskLifecycleState.COMPLETED);
+        task.setCompletedAt(LocalDateTime.now());
         Task saved = taskRepository.save(task);
         return mapToResponseDto(saved);
     }
@@ -139,6 +144,7 @@ public class TaskService {
         boolean allCompleted = areAllObjectivesCompleted(task.getContentPayload());
         if (allCompleted) {
             task.setLifecycleState(TaskLifecycleState.COMPLETED);
+            task.setCompletedAt(LocalDateTime.now());
             return mapToResponseDto(taskRepository.save(task));
         }
 
@@ -273,10 +279,13 @@ public class TaskService {
 
         if (passed) {
             task.setLifecycleState(TaskLifecycleState.COMPLETED);
+            task.setCompletedAt(LocalDateTime.now());
         } else {
             task.setLifecycleState(TaskLifecycleState.IN_PROGRESS);
         }
         taskRepository.save(task);
+        quizAttemptRepository.save(new com.app.sgelasmart.model.QuizAttempt(
+            user.getId(), task.getId(), score, totalQuestions, percentage));
 
         return new QuizSubmissionResponse(
                 task.getId(),

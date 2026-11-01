@@ -1,13 +1,22 @@
 package com.app.sgelasmart.model;
 
-import com.app.sgelasmart.common.TaskLifecycleState;
-import com.app.sgelasmart.common.TaskType;
-import com.app.sgelasmart.common.GoalStage;
-import com.app.sgelasmart.common.TaskPriority;
-import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+
+import com.app.sgelasmart.common.GoalStage;
+import com.app.sgelasmart.common.TaskLifecycleState;
+import com.app.sgelasmart.common.TaskPriority;
+import com.app.sgelasmart.common.TaskType;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "tasks")
@@ -72,6 +81,9 @@ public class Task {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
     public Task() {}
 
     public Task(Long goalId, Long userId, String title, String description,
@@ -117,6 +129,8 @@ public class Task {
     public LocalDateTime getExpiresAt() { return expiresAt; }
     public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getCompletedAt() { return completedAt; }
+    public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
     public LocalDate getScheduledDate() { return scheduledDate; }
     public void setScheduledDate(LocalDate scheduledDate) { this.scheduledDate = scheduledDate; }
     public LocalTime getStartTime() { return startTime; }

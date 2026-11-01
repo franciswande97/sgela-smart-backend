@@ -44,12 +44,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             final String userEmail = jwtService.extractEmail(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+<<<<<<< HEAD
                 if (jwtService.isTokenValid(jwt, userEmail)) {
                     String role = jwtService.extractRole(jwt);
                     List<SimpleGrantedAuthority> authorities = (role != null && !role.isBlank())
                             ? List.of(new SimpleGrantedAuthority(role))
                             : Collections.emptyList();
 
+=======
+                var user = userRepository.findByEmail(userEmail);
+                if (jwtService.isTokenValid(jwt, userEmail) && user.isPresent()) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userEmail,
+                            null,
+                            List.of(() -> "ROLE_" + user.get().getRole().name())
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+                /*if (jwtService.isTokenValid(jwt, userEmail)) {
+>>>>>>> 5ec6bd2 (WIP:working - feat(admin): add analytics dashboard API)
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userEmail,
                             null,
@@ -57,7 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
+                }*/
             }
         } catch (Exception e) {
             // Invalid or expired token: proceed without setting authentication

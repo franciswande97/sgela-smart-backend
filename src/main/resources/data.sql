@@ -1,11 +1,20 @@
 INSERT INTO users (email, password, name, role) 
 VALUES 
+<<<<<<< HEAD
     ('rinavho@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Rinavho', 'ROLE_ADMIN'),
     ('student2@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Thabo', 'ROLE_STUDENT'),
     ('tester@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Tester', 'ROLE_STUDENT')
 ON CONFLICT (email) DO UPDATE SET 
     password = EXCLUDED.password,
     role = EXCLUDED.role;
+=======
+    ('rinavho@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Rinavho', 'STUDENT'),
+    ('student2@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Thabo', 'STUDENT')
+ON CONFLICT (email) DO UPDATE 
+SET password = EXCLUDED.password;
+>>>>>>> 5ec6bd2 (WIP:working - feat(admin): add analytics dashboard API)
+
+UPDATE users SET role = 'STUDENT' WHERE role IS NULL;
 
 -- Seed Goals for Rinavho
 INSERT INTO goals (user_id, title, deadline, status, created_at)

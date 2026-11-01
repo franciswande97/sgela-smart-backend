@@ -65,6 +65,7 @@ public class FocusSessionService {
             }
             // Auto-complete the linked focus task
             task.setLifecycleState(TaskLifecycleState.COMPLETED);
+            task.setCompletedAt(java.time.LocalDateTime.now());
             taskRepository.save(task);
         }
 
