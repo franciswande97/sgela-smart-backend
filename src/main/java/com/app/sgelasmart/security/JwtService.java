@@ -12,7 +12,6 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    // 256-bit secret key for HMAC-SHA256 signing
     private static final String SECRET_STRING = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
     private static final long EXPIRATION_TIME_MS = 1000 * 60 * 60 * 24; // 24 hours
 
@@ -21,17 +20,26 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(String email) {
+    public String generateToken(String email, String role) {
         return Jwts.builder()
                 .subject(email)
+                .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME_MS))
                 .signWith(getSigningKey())
                 .compact();
     }
 
+    public String generateToken(String email) {
+        return generateToken(email, "ROLE_STUDENT");
+    }
+
     public String extractEmail(String token) {
         return extractAllClaims(token).getSubject();
+    }
+
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
     }
 
     public boolean isTokenValid(String token, String userEmail) {

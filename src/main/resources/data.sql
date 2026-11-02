@@ -1,9 +1,11 @@
-INSERT INTO users (email, password, name) 
+INSERT INTO users (email, password, name, role) 
 VALUES 
-    ('rinavho@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Rinavho'),
-    ('student2@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Thabo')
-ON CONFLICT (email) DO UPDATE 
-SET password = EXCLUDED.password;
+    ('rinavho@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Rinavho', 'ROLE_ADMIN'),
+    ('student2@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Thabo', 'ROLE_STUDENT'),
+    ('tester@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Tester', 'ROLE_STUDENT')
+ON CONFLICT (email) DO UPDATE SET 
+    password = EXCLUDED.password,
+    role = EXCLUDED.role;
 
 -- Seed Goals for Rinavho
 INSERT INTO goals (user_id, title, deadline, status, created_at)
@@ -224,16 +226,6 @@ AND NOT EXISTS (
     SELECT 1 FROM tasks t WHERE t.goal_id = g.id AND t.title = 'Claude Prompt: Exception Translation & AuthEntryPoint Design'
 );
 
-INSERT INTO user_settings (
-    user_id, quiz_question_count, quiz_passing_score_percentage,
-    focus_duration_minutes, break_duration_minutes, reschedule_window_start, reschedule_window_end,
-    allow_weekend_reschedule, exam_buffer_days, updated_at
-)
-SELECT u.id, 6, 60.0, 45, 10, '08:00:00', '21:00:00', true, 3, NOW()
-FROM users u WHERE u.email = 'rinavho@sgelasmart.com'
-AND NOT EXISTS (
-    SELECT 1 FROM user_settings s WHERE s.user_id = u.id
-);
 -- ============================================================================
 -- Seed Default User Settings for Rinavho
 -- ============================================================================

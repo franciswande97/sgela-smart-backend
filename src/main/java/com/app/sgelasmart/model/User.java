@@ -19,13 +19,22 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.ROLE_STUDENT;
+
     public User() {
     }
 
     public User(String email, String password, String name) {
+        this(email, password, name, Role.ROLE_STUDENT);
+    }
+
+    public User(String email, String password, String name, Role role) {
         this.email = email;
         this.password = password;
         this.name = name;
+        this.role = (role != null) ? role : Role.ROLE_STUDENT;
     }
 
     public Long getId() {
@@ -54,5 +63,13 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = (role != null) ? role : Role.ROLE_STUDENT;
     }
 }

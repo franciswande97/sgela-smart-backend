@@ -109,7 +109,7 @@ public class CalendarEventService {
         byte[] bytes = extractFileBytes(file);
         String contentType = file.getContentType() != null ? file.getContentType() : "image/jpeg";
 
-        List<TimetableSlotDto> extractedSlots = intelligenceEngine.parseTimetable(bytes, contentType);
+        List<TimetableSlotDto> extractedSlots = intelligenceEngine.parseWritingTimetable(bytes, contentType);
 
         calendarEventRepository.deleteByUserIdAndSourceAndTimetableType(userId, EventSource.OCR, TimetableType.WRITING);
 

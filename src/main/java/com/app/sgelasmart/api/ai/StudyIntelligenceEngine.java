@@ -26,7 +26,12 @@ public class StudyIntelligenceEngine {
 
     private static final Logger log = LoggerFactory.getLogger(StudyIntelligenceEngine.class);
     private final RestClient restClient;
-    private static final String MODEL_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=";
+    private static final List<String> MODEL_CASCADE = List.of(
+            "gemini-3.6-flash",
+            "gemini-3.1-flash-lite",
+            "gemini-3.5-flash-lite"
+    );
+    private static final String BASE_URL_FORMAT = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent";
     private final ObjectMapper objectMapper;
 
     @Value("${gemini.api.key:}")
@@ -48,6 +53,7 @@ public class StudyIntelligenceEngine {
                 "Return every block with title, dayOfWeek (MONDAY to SUNDAY), startTime (HH:mm), and endTime (HH:mm).";
 
         Map<String, Object> timetableSchema = Map.of(
+                
                 "type", "ARRAY",
                 "items", Map.of(
                         "type", "OBJECT",
@@ -83,6 +89,67 @@ public class StudyIntelligenceEngine {
             log.error("Failed to parse timetable via Gemini API. Error: {}", e.getMessage(), e);
             return generateMockTimetable();
         }
+    }
+
+    public List<TimetableSlotDto> parseWritingTimetable(byte[] fileBytes, String mimeType) {
+        if (apiKey == null || apiKey.isBlank()) {
+            log.warn("GEMINI_API_KEY is not configured. Falling back to mock timetable.");
+            return generateMockWritingTimetable();
+        }
+
+        String base64Data = Base64.getEncoder().encodeToString(fileBytes);
+        String prompt = "Extract all examinations, tests, and writing assessments from this exam schedule. " +
+                "For each exam, return: " +
+                "1) title: module code or course name, " +
+                "2) date: calendar date in strictly ISO format YYYY-MM-DD (e.g. 2026-11-15), " +
+                "3) dayOfWeek: MONDAY to SUNDAY, " +
+                "4) startTime: start time in HH:mm (24-hour format), " +
+                "5) endTime: end time in HH:mm (24-hour format, calculate using exam duration if necessary).";
+
+        Map<String, Object> writingSchema = Map.of(
+                "type", "ARRAY",
+                "items", Map.of(
+                        "type", "OBJECT",
+                        "properties", Map.of(
+                                "title", Map.of("type", "STRING"),
+                                "date", Map.of("type", "STRING", "description", "Date in YYYY-MM-DD format"),
+                                "dayOfWeek", Map.of("type", "STRING", "enum", List.of("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY")),
+                                "startTime", Map.of("type", "STRING", "description", "Time in HH:mm format"),
+                                "endTime", Map.of("type", "STRING", "description", "Time in HH:mm format")
+                        ),
+                        "required", List.of("title", "date", "startTime", "endTime")
+                )
+        );
+
+        Map<String, Object> requestBody = Map.of(
+                "contents", List.of(Map.of(
+                        "parts", List.of(
+                                Map.of("inlineData", Map.of("mimeType", mimeType, "data", base64Data)),
+                                Map.of("text", prompt)
+                        )
+                )),
+                "generationConfig", Map.of(
+                        "responseMimeType", "application/json",
+                        "responseSchema", writingSchema
+                )
+        );
+
+        try {
+            log.info("Sending writing/exam timetable ({} bytes, MIME: {}) to Gemini...", fileBytes.length, mimeType);
+            String rawJsonText = executeGeminiCall(requestBody);
+            log.info("Gemini raw writing timetable JSON response: {}", rawJsonText);
+            return objectMapper.readValue(rawJsonText, new TypeReference<List<TimetableSlotDto>>() {});
+        } catch (Exception e) {
+            log.error("Failed to parse writing timetable via Gemini API. Error: {}", e.getMessage(), e);
+            return generateMockWritingTimetable();
+        }
+    }
+
+    private List<TimetableSlotDto> generateMockWritingTimetable() {
+        return List.of(
+                new TimetableSlotDto("COS700 Final Examination", "MONDAY", "2026-11-09", "09:00", "12:00"),
+                new TimetableSlotDto("SE700 Practical Exam", "THURSDAY", "2026-11-12", "14:00", "17:00")
+        );
     }
 
     public String extractMaterialContent(byte[] fileBytes, String mimeType) {
@@ -173,23 +240,46 @@ public class StudyIntelligenceEngine {
     }
 
     private String executeGeminiCall(Map<String, Object> requestBody) throws Exception {
-        String url = MODEL_URL + apiKey;
+        Exception lastException = null;
 
-        String responseJson = restClient.post()
-                .uri(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("x-goog-api-key", apiKey)
-                .body(requestBody)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, (req, resp) -> {
-                    String errBody = new String(resp.getBody().readAllBytes());
-                    log.error("Gemini API error ({}): {}", resp.getStatusCode(), errBody);
-                    throw new ResponseStatusException(HttpStatusCode.valueOf(503), "AI Intelligence Engine error: " + resp.getStatusCode() + " - " + errBody);
-                })
-                .body(String.class);
+        for (String modelName : MODEL_CASCADE) {
+            String url = String.format(BASE_URL_FORMAT, modelName);
+            try {
+                log.info("Invoking Gemini model: {}", modelName);
+                String responseJson = restClient.post()
+                        .uri(url)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("x-goog-api-key", apiKey)
+                        .body(requestBody)
+                        .retrieve()
+                        .onStatus(HttpStatusCode::isError, (req, resp) -> {
+                            String errBody = "";
+                            try {
+                                errBody = new String(resp.getBody().readAllBytes());
+                            } catch (Exception ignored) {}
+                            log.error("Gemini API error on model {} ({}): {}", modelName, resp.getStatusCode(), errBody);
+                            throw new ResponseStatusException(resp.getStatusCode(), "AI Engine error (" + modelName + "): " + resp.getStatusCode() + " - " + errBody);
+                        })
+                        .body(String.class);
 
-        JsonNode root = objectMapper.readTree(responseJson);
-        return root.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
+                JsonNode root = objectMapper.readTree(responseJson);
+                return root.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
+            } catch (ResponseStatusException rse) {
+                lastException = rse;
+                int status = rse.getStatusCode().value();
+                // If permission denied / revoked key / bad request, fail immediately
+                if (status == 401 || status == 403 || status == 400) {
+                    log.error("Fatal API error ({}) on model {}. Halting cascade.", status, modelName);
+                    throw rse;
+                }
+                log.warn("Model {} encountered transient status {}. Cascading to next available model...", modelName, status);
+            } catch (Exception ex) {
+                lastException = ex;
+                log.warn("Model {} failed with error: {}. Cascading to next available model...", modelName, ex.getMessage());
+            }
+        }
+
+        throw new ResponseStatusException(HttpStatusCode.valueOf(503), "All Gemini models in cascade failed", lastException);
     }
 
     private List<TimetableSlotDto> generateMockTimetable() {
