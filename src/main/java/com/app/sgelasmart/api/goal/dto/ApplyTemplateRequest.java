@@ -4,6 +4,8 @@ import com.app.sgelasmart.common.TemplateType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class ApplyTemplateRequest {
 
@@ -11,8 +13,10 @@ public class ApplyTemplateRequest {
     private TemplateType templateType;
 
     @NotEmpty(message = "At least one topic is required")
-    private List<String> topics;
+    @Size(max = 20, message = "A maximum of 20 topics is allowed")
+    private List<@NotBlank(message = "Topics cannot be blank") @Size(max = 200, message = "Each topic must be at most 200 characters") String> topics;
 
+    @Size(max = 20000, message = "Study notes must be at most 20,000 characters")
     private String studyNotesSnippet;
 
     public ApplyTemplateRequest() {}

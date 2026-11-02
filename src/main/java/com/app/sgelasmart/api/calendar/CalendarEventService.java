@@ -48,10 +48,9 @@ public class CalendarEventService {
     @Transactional
     public CalendarEventResponse createEvent(Long userId, CalendarEventRequest request, String authenticatedEmail) {
         verifyUserAccess(userId, authenticatedEmail);
+        validateEventTimes(request);
 
-        TimetableType type = request.getTimetableType() != null ? request.getTimetableType() : TimetableType.CLASS;
-        boolean recurring = request.getIsRecurring() != null ? request.getIsRecurring() : (type == TimetableType.CLASS);
-
+        // Fixed: Added null (or appropriate default TimetableType) to match the 9-argument constructor
         CalendarEvent event = new CalendarEvent(
                 userId,
                 request.getTitle(),
@@ -60,12 +59,23 @@ public class CalendarEventService {
                 request.getStartTime(),
                 request.getEndTime(),
                 request.getSource() != null ? request.getSource() : EventSource.MANUAL,
-                type,
-                recurring
+                null, 
+                request.getIsRecurring() != null ? request.getIsRecurring() : true
         );
 
         CalendarEvent saved = calendarEventRepository.save(event);
         return mapToResponse(saved);
+    }
+
+    /** Rules that involve more than one field, which annotations on a single field cannot express. */
+    private static void validateEventTimes(CalendarEventRequest request) {
+        if (request.getDayOfWeek() == null && request.getEventDate() == null) {
+            throw new IllegalArgumentException("Either dayOfWeek or eventDate is required");
+        }
+        if (request.getStartTime() != null && request.getEndTime() != null
+                && !request.getEndTime().isAfter(request.getStartTime())) {
+            throw new IllegalArgumentException("End time must be after start time");
+        }
     }
 
     @Transactional

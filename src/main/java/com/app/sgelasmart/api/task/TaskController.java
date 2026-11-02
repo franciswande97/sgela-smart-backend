@@ -82,7 +82,7 @@ public class TaskController {
     @PostMapping("/tasks/{task_id}/submit-quiz")
     public ResponseEntity<QuizSubmissionResponse> submitQuiz(
             @PathVariable("task_id") Long taskId,
-            @RequestBody QuizSubmissionRequest submissionRequest,
+            @Valid @RequestBody QuizSubmissionRequest submissionRequest,
             Authentication authentication
     ) {
         QuizSubmissionResponse result = taskService.submitQuiz(taskId, submissionRequest, authentication.getName());

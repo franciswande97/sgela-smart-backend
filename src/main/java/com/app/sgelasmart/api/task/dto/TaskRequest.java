@@ -4,21 +4,31 @@ import com.app.sgelasmart.common.TaskLifecycleState;
 import com.app.sgelasmart.common.TaskType;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
+
 
 public class TaskRequest {
 
     @NotBlank(message = "Title is required")
+    @Size(max = 255, message = "Title must be at most 255 characters")
     private String title;
 
+    @Size(max = 5000, message = "Description must be at most 5,000 characters")
     private String description;
+
+    @Size(max = 100000, message = "Content payload must be at most 100,000 characters")
+    private String contentPayload;
+
+    @Min(value = 1, message = "Estimated duration must be at least 1 minute")
+    @Max(value = 1440, message = "Estimated duration cannot exceed 1440 minutes (24 hours)")
+    private Integer estimatedDurationMinutes;
 
     private TaskType taskType;
 
-    private String contentPayload;
-
     private LocalDate dueDate;
 
-    private Integer estimatedDurationMinutes;
 
     private TaskLifecycleState lifecycleState;
 

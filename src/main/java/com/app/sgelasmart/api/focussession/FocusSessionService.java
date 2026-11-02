@@ -63,6 +63,11 @@ public class FocusSessionService {
             if (!task.getUserId().equals(user.getId())) {
                 throw new AccessDeniedException("Forbidden: You do not own this task");
             }
+            // If both ids are sent they must agree, otherwise the session would be logged against a goal
+            // the task does not belong to.
+            if (requestDto.getGoalId() != null && !requestDto.getGoalId().equals(task.getGoalId())) {
+                throw new IllegalArgumentException("The task does not belong to the given goal");
+            }
             // Auto-complete the linked focus task
             task.setLifecycleState(TaskLifecycleState.COMPLETED);
             task.setCompletedAt(java.time.LocalDateTime.now());

@@ -240,9 +240,22 @@ public class TaskService {
             throw new IllegalStateException("Quiz content payload is empty or malformed");
         }
 
-        Map<Integer, Integer> answersMap = new HashMap<>();
+        java.util.Map<Integer, Integer> answersMap = new java.util.HashMap<>();
         if (submissionRequest.answers() != null) {
             for (QuizSubmissionRequest.AnswerItem item : submissionRequest.answers()) {
+                // The DTO only checks the numbers are in a sane range; here we check them against THIS quiz.
+                if (item.questionIndex() >= questions.size()) {
+                    throw new IllegalArgumentException("Question " + item.questionIndex() + " does not exist in this quiz");
+                }
+                if (answersMap.containsKey(item.questionIndex())) {
+                    throw new IllegalArgumentException("Question " + item.questionIndex() + " was answered more than once");
+                }
+                List<String> options = questions.get(item.questionIndex()).getOptions();
+                int optionCount = options == null ? 0 : options.size();
+                if (item.selectedOptionIndex() >= optionCount) {
+                    throw new IllegalArgumentException("Option " + item.selectedOptionIndex()
+                            + " does not exist for question " + item.questionIndex());
+                }
                 answersMap.put(item.questionIndex(), item.selectedOptionIndex());
             }
         }
