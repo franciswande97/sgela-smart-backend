@@ -41,7 +41,7 @@ public class SecurityConfig {
                         // Protected routes
 =======
                         // Ensure only admin can view reports
-                        requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Protected routes (including /api/auth/me)
 >>>>>>> 5ec6bd2 (WIP:working - feat(admin): add analytics dashboard API)
                         .anyRequest().authenticated()
