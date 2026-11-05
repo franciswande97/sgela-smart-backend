@@ -22,7 +22,7 @@ public class AdminUserController {
     }
 
     @PostMapping("/{studentId}/reset-password")
-    public ResponseEntity<Void> resetStudentPassword(
+    public ResponseEntity<Void> resetStudenotPassword(
             @PathVariable Long studentId,
             @Valid @RequestBody ResetStudentPasswordRequest request) {
         adminUserService.resetStudentPassword(studentId, request.newPassword());

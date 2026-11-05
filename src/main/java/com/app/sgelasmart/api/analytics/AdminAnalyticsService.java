@@ -12,6 +12,7 @@ import com.app.sgelasmart.common.TemplateType;
 import com.app.sgelasmart.common.UserRole;
 import com.app.sgelasmart.model.FocusSession;
 import com.app.sgelasmart.model.Goal;
+import com.app.sgelasmart.model.Role;
 import com.app.sgelasmart.model.QuizAttempt;
 import com.app.sgelasmart.model.Task;
 import com.app.sgelasmart.model.User;
@@ -50,7 +51,7 @@ public class AdminAnalyticsService {
         String normalizedSearch = search == null || search.isBlank() ? null : search.trim().toLowerCase(Locale.ROOT);
 
         List<User> students = userRepository.findAll().stream()
-                .filter(user -> user.getRole() == UserRole.STUDENT)
+                .filter(user -> user.getRole() == Role.ROLE_STUDENT)
                         .filter(user -> normalizedSearch == null
                                 || user.getName().toLowerCase(Locale.ROOT).contains(normalizedSearch))
                 .toList();

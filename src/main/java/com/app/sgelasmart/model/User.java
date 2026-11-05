@@ -29,13 +29,9 @@ public class User {
     private String name;
 
     @Enumerated(EnumType.STRING)
-<<<<<<< HEAD
-    @Column(nullable = false)
-    private Role role = Role.ROLE_STUDENT;
-=======
     @Column
-    private UserRole role = UserRole.STUDENT;
->>>>>>> 5ec6bd2 (WIP:working - feat(admin): add analytics dashboard API)
+    //private UserRole role = UserRole.STUDENT;
+    private Role role = Role.ROLE_STUDENT;
 
     public User() {
     }
@@ -79,17 +75,14 @@ public class User {
         this.name = name;
     }
 
-<<<<<<< HEAD
+    //public UserRole getRole() { return role != null ? role : UserRole.STUDENT; }
+    //public void setRole(UserRole role) { this.role = role; }
     public Role getRole() {
-        return role;
+    return role != null ? role : Role.ROLE_STUDENT;
     }
 
     public void setRole(Role role) {
-        this.role = (role != null) ? role : Role.ROLE_STUDENT;
+        this.role = role;
     }
+
 }
-=======
-    public UserRole getRole() { return role != null ? role : UserRole.STUDENT; }
-    public void setRole(UserRole role) { this.role = role; }
-}
->>>>>>> 5ec6bd2 (WIP:working - feat(admin): add analytics dashboard API)

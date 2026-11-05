@@ -1,6 +1,7 @@
 package com.app.sgelasmart.api.analytics;
 
 import com.app.sgelasmart.api.analytics.dto.AdminDashboardResponse;
+import com.app.sgelasmart.model.Role;
 import com.app.sgelasmart.common.TemplateType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

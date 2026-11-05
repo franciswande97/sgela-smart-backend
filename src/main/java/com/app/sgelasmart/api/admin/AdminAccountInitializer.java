@@ -2,6 +2,7 @@ package com.app.sgelasmart.api.admin;
 
 import com.app.sgelasmart.api.auth.UserRepository;
 import com.app.sgelasmart.common.UserRole;
+import com.app.sgelasmart.model.Role;
 import com.app.sgelasmart.model.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -42,11 +43,11 @@ public class AdminAccountInitializer implements ApplicationRunner {
 
         User user = userRepository.findByEmail(email).orElseGet(() -> {
             User newAdmin = new User(email, passwordEncoder.encode(password), name);
-            newAdmin.setRole(UserRole.ADMIN);
+            newAdmin.setRole(Role.ROLE_ADMIN);
             return newAdmin;
         });
-        if (user.getRole() != UserRole.ADMIN) {
-            user.setRole(UserRole.ADMIN);
+        if (user.getRole() != Role.ROLE_ADMIN) {
+            user.setRole(Role.ROLE_ADMIN);
         }
         userRepository.save(user);
     }
