@@ -33,9 +33,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/register", "/api/auth/login","/error").permitAll()
                         // Swagger & OpenAPI docs
                         .requestMatchers(
+                                "/v3/api-docs",
                                 "/v3/api-docs/**",
+                                "/swagger-ui.html",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/api/v3/api-docs",
+                                "/api/v3/api-docs/**",
+                                "/api/swagger-ui.html",
+                                "/api/swagger-ui/**",
+                                "/swagger-resources",
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
                         // Ensure only admin can view reports
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

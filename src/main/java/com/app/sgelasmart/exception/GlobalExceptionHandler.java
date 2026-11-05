@@ -1,38 +1,5 @@
 package com.app.sgelasmart.exception;
 
-<<<<<<< HEAD
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now().toString());
-        body.put("status", HttpStatus.FORBIDDEN.value());
-        body.put("error", "Forbidden");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now().toString());
-        body.put("status", HttpStatus.FORBIDDEN.value());
-        body.put("error", "Forbidden");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
-=======
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -121,6 +88,5 @@ public class GlobalExceptionHandler {
         ApiError body = ApiError.of(status.value(), status.getReasonPhrase(), message,
                 request.getRequestURI(), fieldErrors);
         return ResponseEntity.status(status).body(body);
->>>>>>> e71a004 (WIP:working - VALIDATION WORK: WIP CHECKPOINT (backend)  Why: the backend accepted bad input silently or crashed with 500s. We're fixing it in 7 small points, each tested in Swagger with seed data before the next.  STATUS 1. Validation switched on + one global error handler ... applied 2. Login and registration rules ................ applied 3. Field rules (required, max lengths, ranges) . applied, fixing compile errors 4. Cross-field rules (event end after start,    focus session task/goal match) .............. applied, fixing compile errors 5. Quiz submission checks ...................... applied, fixing compile errors 6. File upload checks .......................... not started 7. Check AI-generated quiz output .............. not started)
     }
 }

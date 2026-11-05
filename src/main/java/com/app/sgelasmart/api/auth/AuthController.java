@@ -8,6 +8,10 @@ import com.app.sgelasmart.api.auth.dto.UserResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
@@ -37,5 +41,15 @@ public class AuthController {
     public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
         UserResponse response = authService.getCurrentUser(authentication.getName());
         return ResponseEntity.ok(response);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now().toString());
+        body.put("status", HttpStatus.FORBIDDEN.value());
+        body.put("error", "Forbidden");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
 }
