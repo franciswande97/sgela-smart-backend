@@ -35,12 +35,18 @@ public class AuthService {
             throw new EmailAlreadyRegisteredException("Email is already registered");
         }
         Role assignedRole = request.role() != null
-        ? request.role()
-        : Role.ROLE_STUDENT;
+                ? request.role()
+                : Role.ROLE_STUDENT;
         String hashedPassword = passwordEncoder.encode(request.password());
-<<<<<<< HEAD
-        User user = new User(request.email(), hashedPassword, request.name(), assignedRole);
-        User savedUser = userRepository.save(user);
+
+        User user = new User(email, hashedPassword, request.name().trim(), assignedRole);
+        User savedUser;
+        try {
+            savedUser = userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            // Two registrations with the same email at the same moment: the database UNIQUE constraint wins.
+            throw new EmailAlreadyRegisteredException("Email is already registered");
+        }
 
         String token = jwtService.generateToken(savedUser.getEmail(), savedUser.getRole().name());
 
@@ -51,26 +57,7 @@ public class AuthService {
                 savedUser.getRole(),
                 token,
                 "User registered successfully"
-=======
-        User user = new User(email, hashedPassword, request.name().trim());
-        User savedUser;
-        try {
-            savedUser = userRepository.save(user);
-        } catch (DataIntegrityViolationException e) {
-            // Two registrations with the same email at the same moment: the database's UNIQUE constraint wins.
-            throw new EmailAlreadyRegisteredException("Email is already registered");
-        }
-        String token = jwtService.generateToken(savedUser.getEmail());
-        
-        return new RegisterResponse(
-            savedUser.getId(),
-            savedUser.getEmail(),
-            savedUser.getName(),
-            token,
-            "User registered successfully"
->>>>>>> e71a004 (WIP:working - VALIDATION WORK: WIP CHECKPOINT (backend)  Why: the backend accepted bad input silently or crashed with 500s. We're fixing it in 7 small points, each tested in Swagger with seed data before the next.  STATUS 1. Validation switched on + one global error handler ... applied 2. Login and registration rules ................ applied 3. Field rules (required, max lengths, ranges) . applied, fixing compile errors 4. Cross-field rules (event end after start,    focus session task/goal match) .............. applied, fixing compile errors 5. Quiz submission checks ...................... applied, fixing compile errors 6. File upload checks .......................... not started 7. Check AI-generated quiz output .............. not started)
         );
-
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -81,7 +68,6 @@ public class AuthService {
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new BadCredentialsException("Invalid email or password");
         }
-<<<<<<< HEAD
 
         if (request.role() != null && user.getRole() != request.role()) {
             throw new IllegalArgumentException("Access denied: Account role (" + user.getRole().name() + ") does not match requested role (" + request.role().name() + ")");
@@ -95,16 +81,7 @@ public class AuthService {
                 user.getName(),
                 user.getRole(),
                 token
-=======
-        String token = jwtService.generateToken(user.getEmail());
-        return new LoginResponse(
-            user.getId(),
-            user.getEmail(),
-            user.getName(),
-            token
->>>>>>> e71a004 (WIP:working - VALIDATION WORK: WIP CHECKPOINT (backend)  Why: the backend accepted bad input silently or crashed with 500s. We're fixing it in 7 small points, each tested in Swagger with seed data before the next.  STATUS 1. Validation switched on + one global error handler ... applied 2. Login and registration rules ................ applied 3. Field rules (required, max lengths, ranges) . applied, fixing compile errors 4. Cross-field rules (event end after start,    focus session task/goal match) .............. applied, fixing compile errors 5. Quiz submission checks ...................... applied, fixing compile errors 6. File upload checks .......................... not started 7. Check AI-generated quiz output .............. not started)
         );
-
     }
 
     public UserResponse getCurrentUser(String email) {
