@@ -2,24 +2,28 @@ INSERT INTO users (email, password, name, role)
 VALUES 
     ('rinavho@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Rinavho', 'ROLE_ADMIN'),
     ('student2@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Thabo', 'ROLE_STUDENT'),
-    ('tester@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Tester', 'ROLE_STUDENT')
+    ('tester@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Tester', 'ROLE_STUDENT'),
+    ('admin@sgelasmart.com', '$2a$10$F.XiSixk4SCd5XzMfKj7nuXtxRKmz8bXbIqbqjtJkbZ2sEaC1EC1W', 'Admin', 'ROLE_ADMIN')
+
 ON CONFLICT (email) DO UPDATE SET 
     password = EXCLUDED.password,
     role = EXCLUDED.role;
 
 UPDATE users SET role = 'STUDENT' WHERE role IS NULL;
 
--- Seed Goals for Rinavho
+-- ============================================================================
+-- Seed Goals for Tester
+-- ============================================================================
 INSERT INTO goals (user_id, title, deadline, status, created_at)
 SELECT u.id, 'Complete Spring Boot Security Module', CURRENT_DATE + INTERVAL '7 days', 'IN_PROGRESS', NOW()
-FROM users u WHERE u.email = 'rinavho@sgelasmart.com'
+FROM users u WHERE u.email = 'tester@sgelasmart.com'
 AND NOT EXISTS (
     SELECT 1 FROM goals g WHERE g.user_id = u.id AND g.title = 'Complete Spring Boot Security Module'
 );
 
 INSERT INTO goals (user_id, title, deadline, status, created_at)
 SELECT u.id, 'Implement Swagger Documentation', CURRENT_DATE + INTERVAL '2 days', 'COMPLETED', NOW()
-FROM users u WHERE u.email = 'rinavho@sgelasmart.com'
+FROM users u WHERE u.email = 'tester@sgelasmart.com'
 AND NOT EXISTS (
     SELECT 1 FROM goals g WHERE g.user_id = u.id AND g.title = 'Implement Swagger Documentation'
 );
@@ -33,7 +37,7 @@ AND NOT EXISTS (
 );
 
 -- ============================================================================
--- Seed 3x3 Task Matrix (FOCUS_SESSION, QUIZ, EXTERNAL_PROMPT x TODO, IN_PROGRESS, COMPLETED)
+-- Seed 3x3 Task Matrix for Tester (FOCUS_SESSION, QUIZ, EXTERNAL_PROMPT x TODO, IN_PROGRESS, COMPLETED)
 -- ============================================================================
 
 -- 1. FOCUS_SESSION Tasks
@@ -53,7 +57,7 @@ SELECT
     NULL, NULL, NOW()
 FROM users u
 JOIN goals g ON g.user_id = u.id AND g.title = 'Complete Spring Boot Security Module'
-WHERE u.email = 'rinavho@sgelasmart.com'
+WHERE u.email = 'tester@sgelasmart.com'
 AND NOT EXISTS (
     SELECT 1 FROM tasks t WHERE t.goal_id = g.id AND t.title = 'Focus Session: Architecture & Filter Chain Setup'
 );
@@ -74,7 +78,7 @@ SELECT
     NOW() - INTERVAL '25 minutes', NOW() + INTERVAL '65 minutes', NOW() - INTERVAL '25 minutes'
 FROM users u
 JOIN goals g ON g.user_id = u.id AND g.title = 'Complete Spring Boot Security Module'
-WHERE u.email = 'rinavho@sgelasmart.com'
+WHERE u.email = 'tester@sgelasmart.com'
 AND NOT EXISTS (
     SELECT 1 FROM tasks t WHERE t.goal_id = g.id AND t.title = 'Focus Session: JWT Token Provider & Claims Validation'
 );
@@ -95,7 +99,7 @@ SELECT
     NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day' + INTERVAL '60 minutes', NOW() - INTERVAL '2 days'
 FROM users u
 JOIN goals g ON g.user_id = u.id AND g.title = 'Complete Spring Boot Security Module'
-WHERE u.email = 'rinavho@sgelasmart.com'
+WHERE u.email = 'tester@sgelasmart.com'
 AND NOT EXISTS (
     SELECT 1 FROM tasks t WHERE t.goal_id = g.id AND t.title = 'Focus Session: UserDetailsService & Password Encoding'
 );
@@ -117,7 +121,7 @@ SELECT
     NULL, NULL, NOW()
 FROM users u
 JOIN goals g ON g.user_id = u.id AND g.title = 'Complete Spring Boot Security Module'
-WHERE u.email = 'rinavho@sgelasmart.com'
+WHERE u.email = 'tester@sgelasmart.com'
 AND NOT EXISTS (
     SELECT 1 FROM tasks t WHERE t.goal_id = g.id AND t.title = 'Active Recall: Spring Security Architecture Quiz'
 );
@@ -138,7 +142,7 @@ SELECT
     NOW() - INTERVAL '5 minutes', NOW() + INTERVAL '15 minutes', NOW() - INTERVAL '5 minutes'
 FROM users u
 JOIN goals g ON g.user_id = u.id AND g.title = 'Complete Spring Boot Security Module'
-WHERE u.email = 'rinavho@sgelasmart.com'
+WHERE u.email = 'tester@sgelasmart.com'
 AND NOT EXISTS (
     SELECT 1 FROM tasks t WHERE t.goal_id = g.id AND t.title = 'Active Recall: JWT Claims & Token Lifecycle Quiz'
 );
@@ -159,7 +163,7 @@ SELECT
     NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day' + INTERVAL '20 minutes', NOW() - INTERVAL '2 days'
 FROM users u
 JOIN goals g ON g.user_id = u.id AND g.title = 'Complete Spring Boot Security Module'
-WHERE u.email = 'rinavho@sgelasmart.com'
+WHERE u.email = 'tester@sgelasmart.com'
 AND NOT EXISTS (
     SELECT 1 FROM tasks t WHERE t.goal_id = g.id AND t.title = 'Active Recall: Password Hashing & Salt Verification'
 );
@@ -181,7 +185,7 @@ SELECT
     NULL, NULL, NOW()
 FROM users u
 JOIN goals g ON g.user_id = u.id AND g.title = 'Complete Spring Boot Security Module'
-WHERE u.email = 'rinavho@sgelasmart.com'
+WHERE u.email = 'tester@sgelasmart.com'
 AND NOT EXISTS (
     SELECT 1 FROM tasks t WHERE t.goal_id = g.id AND t.title = 'Claude Prompt: Security Filter Chain & RBAC Audit'
 );
@@ -202,7 +206,7 @@ SELECT
     NOW() - INTERVAL '10 minutes', NOW() + INTERVAL '20 minutes', NOW() - INTERVAL '10 minutes'
 FROM users u
 JOIN goals g ON g.user_id = u.id AND g.title = 'Complete Spring Boot Security Module'
-WHERE u.email = 'rinavho@sgelasmart.com'
+WHERE u.email = 'tester@sgelasmart.com'
 AND NOT EXISTS (
     SELECT 1 FROM tasks t WHERE t.goal_id = g.id AND t.title = 'ChatGPT Prompt: JWT Refresh Rotation & Revocation Strategy'
 );
@@ -223,13 +227,13 @@ SELECT
     NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day' + INTERVAL '30 minutes', NOW() - INTERVAL '2 days'
 FROM users u
 JOIN goals g ON g.user_id = u.id AND g.title = 'Complete Spring Boot Security Module'
-WHERE u.email = 'rinavho@sgelasmart.com'
+WHERE u.email = 'tester@sgelasmart.com'
 AND NOT EXISTS (
     SELECT 1 FROM tasks t WHERE t.goal_id = g.id AND t.title = 'Claude Prompt: Exception Translation & AuthEntryPoint Design'
 );
 
 -- ============================================================================
--- Seed Default User Settings for Rinavho
+-- Seed Default User Settings for Tester
 -- ============================================================================
 INSERT INTO user_settings (
     user_id, quiz_question_count, quiz_passing_score_percentage,
@@ -237,7 +241,7 @@ INSERT INTO user_settings (
     allow_weekend_reschedule, exam_buffer_days, updated_at
 )
 SELECT u.id, 6, 60.0, 45, 10, '08:00:00', '21:00:00', true, 3, NOW()
-FROM users u WHERE u.email = 'rinavho@sgelasmart.com'
+FROM users u WHERE u.email = 'tester@sgelasmart.com'
 AND NOT EXISTS (
     SELECT 1 FROM user_settings s WHERE s.user_id = u.id
 );
